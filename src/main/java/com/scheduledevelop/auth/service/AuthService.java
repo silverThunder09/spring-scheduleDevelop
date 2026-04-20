@@ -2,6 +2,7 @@ package com.scheduledevelop.auth.service;
 
 import com.scheduledevelop.auth.dto.LoginRequestDto;
 import com.scheduledevelop.auth.dto.LoginResponseDto;
+import com.scheduledevelop.common.config.PasswordEncoder;
 import com.scheduledevelop.common.exception.ApiException;
 import com.scheduledevelop.user.entity.User;
 import com.scheduledevelop.user.repository.UserRepository;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
 
     @Transactional
@@ -21,7 +23,8 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> ApiException.unauthorized("이메일 또는 비밀번호가 올바르지 않습니다."));
 
-        if (!user.getPassword().equals(request.getPassword())) {
+        // 비밀번호 체크
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw ApiException.unauthorized("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 

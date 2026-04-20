@@ -1,5 +1,6 @@
 package com.scheduledevelop.user.service;
 
+import com.scheduledevelop.common.config.PasswordEncoder;
 import com.scheduledevelop.common.exception.ApiException;
 import com.scheduledevelop.user.dto.UserCreateRequestDto;
 import com.scheduledevelop.user.dto.UserResponseDto;
@@ -17,14 +18,18 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserResponseDto create(UserCreateRequestDto request) {
-        User user = new User(request.getUsername(), request.getEmail(), request.getPassword());
-
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw ApiException.conflict("이미 사용 중인 이메일입니다.");
         }
+
+        // 비밀번호 암호화
+        String encoderPassword = passwordEncoder.encode(request.getPassword());
+
+        User user = new User(request.getUsername(), request.getEmail(), encoderPassword);
 
         User saved = userRepository.save(user);
 
