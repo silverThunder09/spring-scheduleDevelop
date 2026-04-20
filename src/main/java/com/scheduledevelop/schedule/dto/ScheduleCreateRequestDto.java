@@ -9,7 +9,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ScheduleCreateRequestDto {
 
-    private Long userId;
     private String title;
     private String content;
 }

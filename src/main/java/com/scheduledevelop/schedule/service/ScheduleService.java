@@ -6,7 +6,7 @@ import com.scheduledevelop.schedule.dto.ScheduleUpdateRequest;
 import com.scheduledevelop.schedule.entity.Schedule;
 import com.scheduledevelop.schedule.repository.ScheduleRepository;
 import com.scheduledevelop.user.entity.User;
-import com.scheduledevelop.user.repositoty.UserRepository;
+import com.scheduledevelop.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,9 +21,9 @@ public class ScheduleService {
     private final UserRepository userRepository;
 
     @Transactional
-    public ScheduleResponseDto create(ScheduleCreateRequestDto request) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalStateException("해당 id에 대한 유저가 없습니다. id = " + request.getUserId()));
+    public ScheduleResponseDto create(Long loginUserId, ScheduleCreateRequestDto request) {
+        User user = userRepository.findById(loginUserId).orElseThrow(
+                () -> new IllegalStateException("해당 id에 대한 유저가 없습니다. id = " + loginUserId));
 
         Schedule schedule = new Schedule(
                 user,
@@ -53,22 +53,32 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleResponseDto update(Long scheduleId, ScheduleUpdateRequest request) {
+    public ScheduleResponseDto update(Long scheduleId, Long loginUserId, ScheduleUpdateRequest request) {
+
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(
                 () -> new IllegalStateException("해당 id에 대한 일정이 없습니다. id = " + scheduleId));
 
-        schedule.updateSchedule(request.getTitle(), request.getContent());
+        if (schedule.getUser().getId().equals(loginUserId)) {
+            schedule.updateSchedule(request.getTitle(), request.getContent());
+        } else {
+            throw  new IllegalStateException("본인이 작성한 일정만 수정할 수 있습니다.");
+        }
 
         return new ScheduleResponseDto(schedule);
 
     }
 
+
     @Transactional
-    public void delete(Long scheduleId) {
+    public void delete(Long scheduleId, Long loginUserId) {
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new IllegalStateException("해당 id에 대한 일정이 없습니다. id = " + scheduleId));
 
-        scheduleRepository.delete(schedule);
+        if (schedule.getUser().getId().equals(loginUserId)) {
+            scheduleRepository.delete(schedule);
+        } else {
+            throw  new IllegalStateException("본인이 작성한 일정만 수정할 수 있습니다.");
+        }
     }
 
 }

@@ -1,13 +1,13 @@
-package com.scheduledevelop.user.dto;
+package com.scheduledevelop.auth.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class UserCreateRequestDto {
+public class LoginRequestDto {
 
-    private String username;
     private String email;
     private String password;
 }
+
