@@ -1,12 +1,11 @@
 package com.scheduledevelop.schedule.entity;
 
 import com.scheduledevelop.common.entity.BaseEntity;
+import com.scheduledevelop.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Entity
@@ -18,13 +17,15 @@ public class Schedule extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     private String title;
     private String content;
 
-    public Schedule(String username, String title, String content) {
-        this.username = username;
+    public Schedule(User user, String title, String content) {
+        this.user = user;
         this.title = title;
         this.content = content;
     }
