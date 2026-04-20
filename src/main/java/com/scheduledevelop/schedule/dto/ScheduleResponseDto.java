@@ -2,7 +2,6 @@ package com.scheduledevelop.schedule.dto;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.scheduledevelop.schedule.entity.Schedule;
-import com.scheduledevelop.user.entity.User;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

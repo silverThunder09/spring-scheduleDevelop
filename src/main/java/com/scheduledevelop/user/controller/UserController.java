@@ -1,9 +1,14 @@
 package com.scheduledevelop.user.controller;
 
+import com.scheduledevelop.common.SessionKey;
+import com.scheduledevelop.common.exception.ApiException;
 import com.scheduledevelop.user.dto.UserCreateRequestDto;
 import com.scheduledevelop.user.dto.UserResponseDto;
 import com.scheduledevelop.user.dto.UserUpdateRequestDto;
 import com.scheduledevelop.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +25,7 @@ public class UserController {
 
     // 유저 생성 (회원가입)
     @PostMapping
-    public ResponseEntity<UserResponseDto> createUser(@RequestBody UserCreateRequestDto request) {
+    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserCreateRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(request));
     }
 
@@ -38,18 +43,34 @@ public class UserController {
 
     // 유저 수정
     @PutMapping("/{userId}")
-    public ResponseEntity<UserResponseDto> updateUser(@PathVariable Long userId, @RequestBody UserUpdateRequestDto request) {
-        return ResponseEntity.status(HttpStatus.OK).body(userService.update(userId, request));
+    public ResponseEntity<UserResponseDto> updateUser(
+            @PathVariable Long userId,
+            @Valid @RequestBody UserUpdateRequestDto request,
+            HttpServletRequest httpServletRequest) {
+
+        Long loginUserId = getLoginUserId(httpServletRequest);
+
+        return ResponseEntity.status(HttpStatus.OK).body(userService.update(userId, loginUserId, request));
     }
 
     // 유저 삭제
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
-        userService.delete(userId);
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId, HttpServletRequest httpServletRequest) {
+
+        Long loginUserId = getLoginUserId(httpServletRequest);
+
+        userService.delete(userId, loginUserId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    private Long getLoginUserId(HttpServletRequest httpServletRequest) {
+        HttpSession session = httpServletRequest.getSession(false);
 
+        if (session == null || session.getAttribute(SessionKey.LoginUserId) == null) {
+            throw ApiException.unauthorized("로그인이 필요한 요청입니다.");
+        }
 
+        return (Long) session.getAttribute(SessionKey.LoginUserId);
+    }
 
 }

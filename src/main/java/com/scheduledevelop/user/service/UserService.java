@@ -1,5 +1,6 @@
 package com.scheduledevelop.user.service;
 
+import com.scheduledevelop.common.exception.ApiException;
 import com.scheduledevelop.user.dto.UserCreateRequestDto;
 import com.scheduledevelop.user.dto.UserResponseDto;
 import com.scheduledevelop.user.dto.UserUpdateRequestDto;
@@ -21,8 +22,8 @@ public class UserService {
     public UserResponseDto create(UserCreateRequestDto request) {
         User user = new User(request.getUsername(), request.getEmail(), request.getPassword());
 
-        if (request.getPassword() == null || request.getPassword().length() < 8) {
-            throw new IllegalStateException("비밀번호는 8글자 이상이어야 합니다.");
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw ApiException.conflict("이미 사용 중인 이메일입니다.");
         }
 
         User saved = userRepository.save(user);
@@ -40,15 +41,19 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponseDto getOne(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("해당 id에 대한 유저가 없습니다. id = " + userId));
+                .orElseThrow(() -> ApiException.notFound("존재하지 않는 유저입니다."));
 
         return new UserResponseDto(user);
     }
 
     @Transactional
-    public UserResponseDto update(Long userId, UserUpdateRequestDto request) {
+    public UserResponseDto update(Long userId,Long loginUserId, UserUpdateRequestDto request) {
+        if (!userId.equals(loginUserId)) {
+            throw ApiException.forbidden("본인 계정만 수정할 수 있습니다.");
+        }
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("해당 id에 대한 유저가 없습니다. id = " + userId));
+                .orElseThrow(() -> ApiException.notFound("존재하지 않는 유저입니다."));
 
         // 더티 체킹
         user.updateUser(request.getUsername(), request.getEmail());
@@ -57,9 +62,13 @@ public class UserService {
     }
 
     @Transactional
-    public void delete(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new IllegalStateException("해당 id에 대한 유저가 없습니다. id = " + userId));
+    public void delete(Long userId, Long loginUserId) {
+        if (!userId.equals(loginUserId)) {
+            throw ApiException.forbidden("본인 계정만 삭제할 수 있습니다.");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> ApiException.notFound("존재하지 않는 유저입니다."));
 
         userRepository.delete(user);
     }
