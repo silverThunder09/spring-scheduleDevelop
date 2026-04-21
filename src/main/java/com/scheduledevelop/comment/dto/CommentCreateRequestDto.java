@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CommentCreateRequestDto {
 
-    @NotBlank
+    @NotBlank(message = "댓글 내용은 필수입니다.")
     @Size(max =100, message = "댓글 내용은 100자 이하여야 합니다.")
     private String content;
 }
