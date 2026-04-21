@@ -941,69 +941,6 @@ CREATE DATABASE schedule_db_v2;
 
 <br>
 
-### 요청 본문(JSON)이 잘못된 경우
-
-```json
-{
-  "status": 400,
-  "message": "요청 본문을 읽을 수 없습니다."
-}
-```
-
-### 파라미터 타입이 잘못된 경우
-
-```json
-{
-  "status": 400,
-  "message": "요청 파라미터 타입이 올바르지 않습니다."
-}
-```
-
-### 로그인 없이 보호된 API에 접근한 경우
-
-```json
-{
-  "status": 401,
-  "message": "로그인이 필요한 요청입니다."
-}
-```
-
-### 권한이 없는 경우
-
-```json
-{
-  "status": 403,
-  "message": "본인 계정만 수정 또는 삭제할 수 있습니다."
-}
-```
-
-또는
-
-```json
-{
-  "status": 403,
-  "message": "본인이 작성한 일정만 수정 또는 삭제할 수 있습니다."
-}
-```
-
-### 존재하지 않는 리소스를 요청한 경우
-
-```json
-{
-  "status": 404,
-  "message": "존재하지 않는 일정입니다."
-}
-```
-
-### 중복 데이터인 경우
-
-```json
-{
-  "status": 409,
-  "message": "이미 사용 중인 이메일입니다."
-}
-```
-
 ## ERD
 ![ERD](./src/main/resources/images/erd-schedule.png)
 
