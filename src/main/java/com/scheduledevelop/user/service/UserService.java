@@ -45,20 +45,15 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserResponseDto getOne(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> ApiException.notFound("존재하지 않는 유저입니다."));
+        User user = findUser(userId);
 
         return new UserResponseDto(user);
     }
 
     @Transactional
     public UserResponseDto update(Long userId,Long loginUserId, UserUpdateRequestDto request) {
-        if (!userId.equals(loginUserId)) {
-            throw ApiException.forbidden("본인 계정만 수정할 수 있습니다.");
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> ApiException.notFound("존재하지 않는 유저입니다."));
+        validateUserOwner(userId, loginUserId);
+        User user = findUser(userId);
 
         // 더티 체킹
         user.updateUser(request.getUsername(), request.getEmail());
@@ -68,13 +63,25 @@ public class UserService {
 
     @Transactional
     public void delete(Long userId, Long loginUserId) {
-        if (!userId.equals(loginUserId)) {
-            throw ApiException.forbidden("본인 계정만 삭제할 수 있습니다.");
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> ApiException.notFound("존재하지 않는 유저입니다."));
+        validateUserOwner(userId, loginUserId);
+        User user = findUser(userId);
 
         userRepository.delete(user);
     }
+
+    // 유저 조회
+    // 존재하지 않으면 404 예외 발생
+    private User findUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> ApiException.notFound("존재하지 않는 유저입니다."));
+    }
+
+    // 로그인한 유저가 본인 계정인지 확인
+    // 본인계정이 아니면 403 예외 발생
+    private void validateUserOwner(Long userId, Long loginUserId) {
+        if (!userId.equals(loginUserId)) {
+            throw ApiException.forbidden("본인 계정만 수정 또는 삭제할 수 있습니다.");
+        }
+    }
+
 }

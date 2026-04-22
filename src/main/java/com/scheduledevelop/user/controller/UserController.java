@@ -58,6 +58,9 @@ public class UserController {
         Long loginUserId = SessionUtil.getLoginUserId(session);
 
         userService.delete(userId, loginUserId);
+
+        // 유저 삭제 후 세션 무효화
+        session.invalidate();
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
