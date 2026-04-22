@@ -1,7 +1,9 @@
 package com.scheduledevelop.user.service;
 
+import com.scheduledevelop.comment.repository.CommentRepository;
 import com.scheduledevelop.common.config.PasswordEncoder;
 import com.scheduledevelop.common.exception.ApiException;
+import com.scheduledevelop.schedule.repository.ScheduleRepository;
 import com.scheduledevelop.user.dto.UserCreateRequestDto;
 import com.scheduledevelop.user.dto.UserResponseDto;
 import com.scheduledevelop.user.dto.UserUpdateRequestDto;
@@ -18,6 +20,8 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final ScheduleRepository scheduleRepository;
+    private final CommentRepository commentRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -69,6 +73,14 @@ public class UserService {
     public void delete(Long userId, Long loginUserId) {
         User user = findUser(userId);
         validateUserOwner(userId, loginUserId);
+
+        // 유저를 바로 삭제하면 댓글/일정이 외래 키로 묶여 있어 DB가 삭제를 막는다.
+        // 그래서 자식 데이터부터 정리한 뒤 마지막에 유저를 삭제한다.
+        commentRepository.deleteAllByUserId(userId);
+
+        commentRepository.deleteAllByScheduleUserId(userId);
+
+        scheduleRepository.deleteAllByUserId(userId);
 
         userRepository.delete(user);
     }
