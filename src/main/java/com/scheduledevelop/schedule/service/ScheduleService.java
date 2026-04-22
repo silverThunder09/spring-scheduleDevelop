@@ -1,5 +1,6 @@
 package com.scheduledevelop.schedule.service;
 
+import com.scheduledevelop.comment.repository.CommentRepository;
 import com.scheduledevelop.common.exception.ApiException;
 import com.scheduledevelop.schedule.dto.ScheduleCreateRequestDto;
 import com.scheduledevelop.schedule.dto.ScheduleResponseDto;
@@ -20,10 +21,12 @@ public class ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional
     public ScheduleResponseDto create(Long loginUserId, ScheduleCreateRequestDto request) {
-        User user = userRepository.findById(loginUserId).orElseThrow(() -> ApiException.notFound("존재하지 않는 유저입니다."));
+        User user = userRepository.findById(loginUserId).orElseThrow(
+                () -> ApiException.notFound("존재하지 않는 유저입니다."));
 
         Schedule schedule = new Schedule(user, request.getTitle(), request.getContent());
 
@@ -65,6 +68,10 @@ public class ScheduleService {
 
         validateScheduleOwner(schedule, loginUserId);
 
+        //일정에 달린 댓글 먼저 삭제
+        commentRepository.deleteAllByScheduleId(scheduleId);
+
+        // 이후 일정 삭제
         scheduleRepository.delete(schedule);
     }
 
