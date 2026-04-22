@@ -1,12 +1,10 @@
 package com.scheduledevelop.schedule.controller;
 
-import com.scheduledevelop.common.SessionKey;
-import com.scheduledevelop.common.exception.ApiException;
+import com.scheduledevelop.common.Util.SessionUtil;
 import com.scheduledevelop.schedule.dto.ScheduleCreateRequestDto;
 import com.scheduledevelop.schedule.dto.ScheduleResponseDto;
 import com.scheduledevelop.schedule.dto.ScheduleUpdateRequest;
 import com.scheduledevelop.schedule.service.ScheduleService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +24,9 @@ public class ScheduleController {
     @PostMapping
     public ResponseEntity<ScheduleResponseDto> createSchedule(
             @Valid @RequestBody ScheduleCreateRequestDto request,
-            HttpServletRequest httpServletRequest) {
+            HttpSession session) {
 
-        Long loginUserId = getLoginUserId(httpServletRequest);
+        Long loginUserId = SessionUtil.getLoginUserId(session);
         return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.create(loginUserId, request));
     }
 
@@ -46,30 +44,17 @@ public class ScheduleController {
     public ResponseEntity<ScheduleResponseDto> updateSchedule(
             @PathVariable Long scheduleId,
             @Valid @RequestBody ScheduleUpdateRequest request,
-            HttpServletRequest httpServletRequest) {
+            HttpSession session) {
 
-        Long loginUserId = getLoginUserId(httpServletRequest);
+        Long loginUserId = SessionUtil.getLoginUserId(session);
         return ResponseEntity.status(HttpStatus.OK).body(scheduleService.update(scheduleId, loginUserId, request));
     }
 
     @DeleteMapping("{scheduleId}")
-    public ResponseEntity<Void> deleteSchedule(@PathVariable Long scheduleId, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Void> deleteSchedule(@PathVariable Long scheduleId, HttpSession session) {
 
-        Long loginUserId = getLoginUserId(httpServletRequest);
+        Long loginUserId = SessionUtil.getLoginUserId(session);
         scheduleService.delete(scheduleId, loginUserId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
-
-    // 로그인 유저 확인 메서드 (생성, 수정, 삭제해서 필요)
-    // interceptor로 구현할 예정
-    private Long getLoginUserId(HttpServletRequest httpServletRequest) {
-        HttpSession session = httpServletRequest.getSession(false);
-
-        if (session == null || session.getAttribute(SessionKey.LoginUserId) == null) {
-            throw ApiException.unauthorized("로그인이 필요한 요청입니다.");
-        }
-
-        return (Long) session.getAttribute(SessionKey.LoginUserId);
-    }
-
 }

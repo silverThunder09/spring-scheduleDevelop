@@ -1,12 +1,10 @@
 package com.scheduledevelop.user.controller;
 
-import com.scheduledevelop.common.SessionKey;
-import com.scheduledevelop.common.exception.ApiException;
+import com.scheduledevelop.common.Util.SessionUtil;
 import com.scheduledevelop.user.dto.UserCreateRequestDto;
 import com.scheduledevelop.user.dto.UserResponseDto;
 import com.scheduledevelop.user.dto.UserUpdateRequestDto;
 import com.scheduledevelop.user.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,31 +44,21 @@ public class UserController {
     public ResponseEntity<UserResponseDto> updateUser(
             @PathVariable Long userId,
             @Valid @RequestBody UserUpdateRequestDto request,
-            HttpServletRequest httpServletRequest) {
+            HttpSession session) {
 
-        Long loginUserId = getLoginUserId(httpServletRequest);
+        Long loginUserId = SessionUtil.getLoginUserId(session);
 
         return ResponseEntity.status(HttpStatus.OK).body(userService.update(userId, loginUserId, request));
     }
 
     // 유저 삭제
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long userId, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId, HttpSession session) {
 
-        Long loginUserId = getLoginUserId(httpServletRequest);
+        Long loginUserId = SessionUtil.getLoginUserId(session);
 
         userService.delete(userId, loginUserId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    private Long getLoginUserId(HttpServletRequest httpServletRequest) {
-        HttpSession session = httpServletRequest.getSession(false);
-
-        if (session == null || session.getAttribute(SessionKey.LoginUserId) == null) {
-            throw ApiException.unauthorized("로그인이 필요한 요청입니다.");
-        }
-
-        return (Long) session.getAttribute(SessionKey.LoginUserId);
     }
 
 }

@@ -3,8 +3,8 @@ package com.scheduledevelop.auth.controller;
 import com.scheduledevelop.auth.dto.LoginRequestDto;
 import com.scheduledevelop.auth.dto.LoginResponseDto;
 import com.scheduledevelop.auth.service.AuthService;
-import com.scheduledevelop.common.SessionKey;
-import com.scheduledevelop.common.exception.ApiException;
+import com.scheduledevelop.common.config.SessionKey;
+import com.scheduledevelop.common.Util.SessionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -36,15 +36,13 @@ public class AuthController {
     }
 
     @DeleteMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest httpServletRequest) {
-        HttpSession session = httpServletRequest.getSession(false);
+    public ResponseEntity<Void> logout(HttpSession seesion) {
+        // 로그인 여부 먼저 검증
+        SessionUtil.getLoginUserId(seesion);
 
-        if (session == null || session.getAttribute(SessionKey.LoginUserId) == null) {
-            throw ApiException.unauthorized("로그인이 필요한 요청입니다.");
-        }
+        // 위 검증을 통과했다면 세션이 존재하므로 바로 무효화
+        seesion.invalidate();
 
-        // 세션 무효화
-        session.invalidate();
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 

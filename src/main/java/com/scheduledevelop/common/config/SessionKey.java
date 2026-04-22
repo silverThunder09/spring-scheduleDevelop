@@ -1,8 +1,8 @@
-package com.scheduledevelop.common;
+package com.scheduledevelop.common.config;
 
 public final class SessionKey {
 
     public static final String LoginUserId = "LoginUserId";
 
-    private SessionKey() {}
+    public SessionKey() {}
 }
