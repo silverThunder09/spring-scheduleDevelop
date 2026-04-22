@@ -52,8 +52,12 @@ public class UserService {
 
     @Transactional
     public UserResponseDto update(Long userId,Long loginUserId, UserUpdateRequestDto request) {
-        validateUserOwner(userId, loginUserId);
         User user = findUser(userId);
+        validateUserOwner(userId, loginUserId);
+
+        if (userRepository.existsByEmailAndIdNot(request.getEmail(), userId)) {
+            throw ApiException.conflict("이미 사용 중인 이메일입니다.");
+        }
 
         // 더티 체킹
         user.updateUser(request.getUsername(), request.getEmail());
@@ -63,8 +67,8 @@ public class UserService {
 
     @Transactional
     public void delete(Long userId, Long loginUserId) {
-        validateUserOwner(userId, loginUserId);
         User user = findUser(userId);
+        validateUserOwner(userId, loginUserId);
 
         userRepository.delete(user);
     }
